@@ -1,14 +1,14 @@
 # OP Stack Rollup Deployment
 
-This project deploys an OP Stack rollup. Defaults come from (Optimisim's Create L2 Rollup guide)[https://docs.optimism.io/builders/chain-operators/tutorials/create-l2-rollup]
+This project deploys an OP Stack rollup. Defaults come from [Optimisim's Create L2 Rollup guide.](https://docs.optimism.io/builders/chain-operators/tutorials/create-l2-rollup)
 
-## How to Deploy Locally with Minikube
+## Deploying Locally to Minikube
 
 ### Prerequisites
 - Minikube: https://minikube.sigs.k8s.io/docs/start/
 - kubectl: https://kubernetes.io/docs/tasks/tools/
 
-### Steps to Deploy Locally:
+### Steps:
 
 1. **Start Minikube:**
 
@@ -37,7 +37,7 @@ This project deploys an OP Stack rollup. Defaults come from (Optimisim's Create 
 - Google Cloud SDK: https://cloud.google.com/sdk/docs/install
 - kubectl: https://kubernetes.io/docs/tasks/tools/
 
-### Steps to Deploy on GCP:
+### Steps:
 
 0. **Roll out Terraform resources if needed.**
 
@@ -54,7 +54,7 @@ This project deploys an OP Stack rollup. Defaults come from (Optimisim's Create 
     `terraform plan`
     
     Order matters. First `init` with the state backend config commented out at `deployment/terraform/main.tf`. 
-    After, `apply` the backend-state module. Then migrate the state to the backend (CLI prompts will walk you through it). You can apply the rest as normal. 
+    After, `apply` the backend-state module. Then migrate the state to the backend (CLI prompts will walk you through it). You can apply the rest as normal! 
     
 
 1. **Authenticate with GCP and Get GKE Cluster Credentials:**
@@ -83,10 +83,12 @@ This project deploys an OP Stack rollup. Defaults come from (Optimisim's Create 
 
 ## To Do List... Tomorrow 🤞
 
+- Expand documentation
 - Reintroduce Helm: Utilize variables throughout the configuration for better maintainability.
 - Auto-scaling: Add auto-scaling support.
 - Keta Integration: Introduce metric-based scaling using Keta.
 - Karpenter: Implement Karpenter to manage node groups for better control over rotation.
+- Secrets: Implement Secret Manager
 - Dynamic Authentication: Set up dynamic authentication for Proxyd.
 - GitHub Actions: Automate deployment to GCP using GitHub Actions.
 - Build Config Scripts: Create scripts to dynamically build fresh configurations based on parameters.
