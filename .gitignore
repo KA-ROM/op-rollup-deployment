@@ -1,0 +1,9 @@
+.terraform
+.envrc
+.env
+logs*
+src
+tmp
+notes.md
+secret.yaml
+.DS_Store

@@ -1,0 +1,46 @@
+---
+# Source: op-batcher/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: op-stack
+  name: op-batcher
+  labels:
+    helm.sh/chart: op-batcher-0.1.2
+    app.kubernetes.io/name: op-batcher
+    app.kubernetes.io/instance: op-batcher
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc-port
+      port: 8548
+      targetPort: 8548
+
+  selector:
+    app.kubernetes.io/name: op-batcher
+    app.kubernetes.io/instance: op-batcher
+
+---
+# Source: op-batcher/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: op-stack
+  name: "op-batcher-test-connection"
+  labels:
+    helm.sh/chart: op-batcher-0.1.2
+    app.kubernetes.io/name: op-batcher
+    app.kubernetes.io/instance: op-batcher
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['op-batcher:8548']
+  restartPolicy: Never

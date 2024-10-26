@@ -1,0 +1,52 @@
+---
+# Source: op-node/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: op-stack
+  name: op-node
+  labels:
+    helm.sh/chart: op-node-0.1.2
+    app.kubernetes.io/name: op-node
+    app.kubernetes.io/instance: op-node
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc-port
+      port: 8547
+      targetPort: 8547
+    - name: metrics-port
+      port: 7300
+      targetPort: 7300
+    - name: pprof-port
+      port: 6060
+      targetPort: 6060
+
+  selector:
+    app.kubernetes.io/name: op-node
+    app.kubernetes.io/instance: op-node
+
+---
+# Source: op-node/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: op-stack
+  name: "op-node-test-connection"
+  labels:
+    helm.sh/chart: op-node-0.1.2
+    app.kubernetes.io/name: op-node
+    app.kubernetes.io/instance: op-node
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['op-node:8547']
+  restartPolicy: Never

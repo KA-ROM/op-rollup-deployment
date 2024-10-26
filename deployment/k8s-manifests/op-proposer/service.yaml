@@ -1,0 +1,46 @@
+---
+# Source: op-proposer/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: op-stack
+  name: op-proposer
+  labels:
+    helm.sh/chart: op-proposer-0.1.2
+    app.kubernetes.io/name: op-proposer
+    app.kubernetes.io/instance: op-proposer
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc-port
+      port: 8560
+      targetPort: 8560
+
+  selector:
+    app.kubernetes.io/name: op-proposer
+    app.kubernetes.io/instance: op-proposer
+
+---
+# Source: op-proposer/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: op-stack
+  name: "op-proposer-test-connection"
+  labels:
+    helm.sh/chart: op-proposer-0.1.2
+    app.kubernetes.io/name: op-proposer
+    app.kubernetes.io/instance: op-proposer
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['op-proposer:8560']
+  restartPolicy: Never
