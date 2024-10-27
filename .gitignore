@@ -2,7 +2,11 @@
 .envrc
 .env
 logs*
-src
+src/blockscout
+src/op-geth
+src/optimism
+src/infra
+src/.envrc
 tmp
 notes.md
 secret.yaml
