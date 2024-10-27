@@ -84,7 +84,6 @@ This project deploys an OP Stack rollup. Defaults come from [Optimisim's Create 
 ## To Do List... Tomorrow 🤞
 
 - Expand documentation
-- Reintroduce Helm: Utilize variables throughout the configuration for better maintainability.
 - Auto-scaling: Add auto-scaling support.
 - Keta Integration: Introduce metric-based scaling using Keta.
 - Karpenter: Implement Karpenter to manage node groups for better control over rotation.
