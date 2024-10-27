@@ -1,0 +1,9 @@
+apiVersion: v2
+name: proxyd-chart
+description: A Helm chart for deploying Proxyd and Redis
+version: 0.1.0
+
+dependencies:
+  - name: redis
+    version: 17.10.2  # Choose the latest stable version
+    repository: "https://charts.bitnami.com/bitnami"

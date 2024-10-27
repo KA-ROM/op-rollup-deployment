@@ -1,0 +1,16 @@
+namespace: op-stack-proxyd
+
+proxyd:
+  image:
+    repository: europe-north1-docker.pkg.dev/gelato-project-439308/proxyd/proxyd
+    tag: latest
+    
+  service:
+    port: 8080
+  replicas: 1
+
+redis:
+  namespace: op-stack-proxyd
+  architecture: standalone
+  auth:
+    enabled: false
