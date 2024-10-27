@@ -1,0 +1,4 @@
+apiVersion: v2
+name: op-stack-chart
+description: A Helm chart for deploying op-geth, op-node, op-batcher, and op-proposer l2
+version: 0.1.0

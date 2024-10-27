@@ -2,45 +2,41 @@
 # Local Minikube Deployment
 # ----------------------------------------------------
 
-K8S_MANIFESTS_DIR := deployment/k8s-manifests
 NAMESPACE := op-stack
-.PHONY: ha delete-statefulset reapply-statefulset watch reload-all
+RELEASE_NAME := op-stack-release
+K8S_MANIFESTS_DIR := deployment/k8s-manifests
+CHART_DIR := deployment/helm/op-stack-chart
 
-install: delete-statefulset reapply-statefulset
+.PHONY: install uninstall status delete-statefulset reapply-statefulset
+
+# Install the entire OP Node stack using Helm
+install: 
 	kubectl get namespace $(NAMESPACE) || kubectl create namespace $(NAMESPACE)
-	@echo "Applying HA manifests from $(K8S_MANIFESTS_DIR) into namespace $(NAMESPACE)..."
-	cd $(K8S_MANIFESTS_DIR) && kubectl apply -R -f . -n $(NAMESPACE)
+	helm upgrade --install $(RELEASE_NAME) $(CHART_DIR) --namespace $(NAMESPACE)
 
-delete-statefulset:
-	kubectl delete statefulset op-geth -n $(NAMESPACE) --cascade=orphan
+# Uninstall the OP Node stack
+uninstall:
+	helm uninstall $(RELEASE_NAME) --namespace $(NAMESPACE)
 
-reapply-statefulset:
+# Reapply the op-geth statefulset
+reapply_statefulset:
 	kubectl apply -f $(K8S_MANIFESTS_DIR)/op-geth/statefulset.yaml -n $(NAMESPACE)
 
+# Delete the op-geth statefulset
+delete_statefulset:
+	kubectl delete statefulset op-geth -n $(NAMESPACE) --cascade=orphan
+
+# Check the status of the deployment
 status:
-	@echo "Checking deployment status in namespace $(NAMESPACE)..."
 	kubectl get all -n $(NAMESPACE)
 
 # ----------------------------------------------------
 # GCP GKE Deployment
 # ----------------------------------------------------
-
-PROJECT_ID := gelato-project-439308
-CLUSTER_NAME := op-stack-gke-cluster
-CLUSTER_ZONE := europe-north1
 K8S_MANIFESTS_DIR := deployment/k8s-manifests
 NAMESPACE := op-stack
 
 .PHONY: auth deploy
-
-# Authenticate with Google Cloud and get GKE credentials
-gcp_auth:
-	@echo "Authenticating with Google Cloud..."
-	gcloud auth login
-	@echo "Setting Google Cloud project to $(PROJECT_ID)..."
-	gcloud config set project $(PROJECT_ID)
-	@echo "Fetching GKE cluster credentials for $(CLUSTER_NAME) in zone $(CLUSTER_ZONE)..."
-	gcloud container clusters get-credentials $(CLUSTER_NAME) --zone $(CLUSTER_ZONE)
 
 # Deploy Kubernetes manifests to GKE
 gcp_deploy:
@@ -56,5 +52,3 @@ gcp_cleanup:
 	@echo "Deleting namespace $(NAMESPACE)..."
 	kubectl delete namespace $(NAMESPACE)
 	@echo "Cleanup complete!"
-
-
