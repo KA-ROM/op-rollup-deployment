@@ -1,0 +1,23 @@
+namespace: op-stack-proxyd
+
+proxyd:
+  image:
+    repository: europe-north1-docker.pkg.dev/gelato-project-439308/proxyd/proxyd
+    tag: latest
+    
+  service:
+    port: 8080
+  replicas: 1
+  endpoints:
+    l1_rpc: https://ethereum-sepolia-rpc.publicnode.com
+    redis_url: "redis://proxyd-release-redis-master:6379"
+    sequencer_rpc_url: "http://op-geth-sequencer:8545"
+    sequencer_ws_url: "ws://op-geth-sequencer:8546"
+    replica_rpc_url: "http://op-geth-replica:8545"
+    replica_ws_url: "ws://op-geth-replica:8546"
+
+redis:
+  namespace: op-stack-proxyd
+  architecture: standalone
+  auth:
+    enabled: false
