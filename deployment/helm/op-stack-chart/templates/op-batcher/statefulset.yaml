@@ -1,0 +1,73 @@
+---
+# Source: op-batcher/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: op-stack
+  name: op-batcher
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+    helm.sh/chart: op-batcher-0.1.2
+    app.kubernetes.io/name: op-batcher
+    app.kubernetes.io/instance: op-batcher
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: "op-stack-release"
+    meta.helm.sh/release-namespace: "op-stack"
+
+spec:
+  serviceName: op-batcher
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: op-batcher
+      app.kubernetes.io/instance: op-batcher
+  template:
+    metadata:
+      namespace: op-stack
+      labels:
+        app.kubernetes.io/name: op-batcher
+        app.kubernetes.io/instance: op-batcher
+    spec:
+      containers:
+        - name: op-batcher
+          image: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher:v1.9.1"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: rpc-port
+              containerPort: 8548
+          command:
+            - op-batcher
+          args:
+            - --l2-eth-rpc=http://op-geth:8545
+            - --rollup-rpc=http://op-node:8547
+            - --poll-interval=1s
+            - --sub-safety-margin=6
+            - --num-confirmations=1
+            - --safe-abort-nonce-too-low-count=3
+            - --resubmission-timeout=30s
+            - --rpc.addr=0.0.0.0
+            - --rpc.port=8548
+            - --rpc.enable-admin=true
+            - --max-channel-duration=0
+            - --l1-eth-rpc=https://ethereum-sepolia-rpc.publicnode.com
+          env:
+            - name: OP_BATCHER_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: op-batcher-secret
+                  key: batcherKey
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            tcpSocket:
+              port: rpc-port
+          readinessProbe:
+            # TODO: replace it to real http request.
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            tcpSocket:
+              port: rpc-port
+          resources:
+            {}

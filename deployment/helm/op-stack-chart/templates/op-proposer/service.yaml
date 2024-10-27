@@ -1,0 +1,27 @@
+---
+# Source: op-proposer/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: op-stack
+  name: op-proposer
+  labels:
+    helm.sh/chart: op-proposer-0.1.2
+    app.kubernetes.io/name: op-proposer
+    app.kubernetes.io/instance: op-proposer
+    app.kubernetes.io/version: "v0.10.13"
+    app.kubernetes.io/managed-by: "Helm"
+  annotations:
+    meta.helm.sh/release-name: "op-stack-release"
+    meta.helm.sh/release-namespace: "op-stack"
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc-port
+      port: 8560
+      targetPort: 8560
+
+  selector:
+    app.kubernetes.io/name: op-proposer
+    app.kubernetes.io/instance: op-proposer
+
