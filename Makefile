@@ -16,8 +16,10 @@ CHART_DIR_PROXYD := deployment/helm/proxyd-chart
 gcp_auth:
 	gcloud container clusters get-credentials $(GKE_CLUSTER_NAME) --region $(GKE_REGION) --project $(GCP_PROJECT_ID)
 	gcloud auth configure-docker $(GKE_REGION)-docker.pkg.dev
-	cd $(CHART_DIR_OP_STACK) && helm dependency update
-	cd $(CHART_DIR_PROXYD) && helm dependency update
+
+helm_update:
+	cd $(CHART_DIR_OP_STACK) && helm dependency update && helm dependency build
+	cd $(CHART_DIR_PROXYD) && helm dependency update && helm dependency build
 
 # ----------------------------------------------------
 # Local Minikube Deployment
@@ -25,7 +27,7 @@ gcp_auth:
 
 .PHONY: install uninstall status delete-statefulset reapply-statefulset
 
-install_all: install_op install_proxyd
+install_all: delete_statefulset  install_op install_proxyd 
 cleanup: uninstall_op uninstall_proxyd
 
 # Install the entire OP Node stack using Helm
@@ -37,12 +39,12 @@ install_op:
 uninstall_op:
 	helm uninstall $(K8S_RELEASE_NAME) --namespace $(K8S_NAMESPACE)
 
-# Deploy proxyd along with the OP Node stack
-install_proxyd: install
-	helm upgrade --install proxyd-release $(CHART_DIR_PROXYD) --namespace $(K8S_NAMESPACE)
+# Deploy proxyd
+install_proxyd:  
+	cd ./deployment/helm && helm upgrade --install proxyd-release ./proxyd-chart --namespace $(K8S_NAMESPACE)
 
 # Uninstall the proxyd service
-uninstall_proxyd:
+uninstall_proxyd: 
 	helm uninstall proxyd-release --namespace $(K8S_NAMESPACE)
 
 # Reapply the op-geth statefulset
@@ -51,7 +53,7 @@ reapply_statefulset:
 
 # Delete the op-geth statefulset
 delete_statefulset:
-	kubectl delete statefulset op-geth -n $(K8S_NAMESPACE) --cascade=orphan
+	kubectl delete statefulset --all -n $(K8S_NAMESPACE) --cascade=orphan
 
 # Check the status of the deployment
 status:

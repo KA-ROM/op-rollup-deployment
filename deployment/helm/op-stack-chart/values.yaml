@@ -1,0 +1,57 @@
+images:
+  op_geth:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth
+    tag: v1.101411.0
+    pullPolicy: IfNotPresent
+  op_node:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node
+    tag: v1.9.1
+    pullPolicy: IfNotPresent
+  op_batcher:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-batcher
+    tag: v1.9.1
+    pullPolicy: IfNotPresent
+  op_proposer:
+    repository: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-proposer
+    tag: v1.9.1
+    pullPolicy: IfNotPresent
+
+endpoints:
+  l1_rpc: https://ethereum-sepolia-rpc.publicnode.com
+  sequencer_rpc_url: "http://op-geth-sequencer:8545"
+  sequencer_ws_url: "ws://op-geth-sequencer:8546"
+  replica_rpc_url: "http://op-geth-replica:8545"
+  replica_ws_url: "ws://op-geth-replica:8546"
+  rollup_rpc_url: "http://op-node:8547"
+
+l1_network_id: "11155420"
+l2_network_id: "42069"
+
+# Values for the Sequencer `op-geth` node (handles block production)
+sequencer:
+  enabled: true
+  replicas: 1
+  resources:
+    limits:
+      memory: 6Gi
+    requests:
+      memory: 4Gi
+  storage:
+    size: 100Gi
+
+# Values for Replica `op-geth` nodes (handle read-only requests)
+replica:
+  enabled: true
+  replicas: 2
+  resources:
+    limits:
+      memory: 3Gi
+    requests:
+      memory: 2Gi
+  storage:
+    size: 50Gi
+  ports:
+    rpc_http_port: 8545
+    rpc_ws_port: 8546
+    metrics_port: 7300
+    pprof_port: 6060

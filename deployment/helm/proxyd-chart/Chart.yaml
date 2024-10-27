@@ -5,5 +5,5 @@ version: 0.1.0
 
 dependencies:
   - name: redis
-    version: 17.10.2  # Choose the latest stable version
+    version: 17.10.2
     repository: "https://charts.bitnami.com/bitnami"

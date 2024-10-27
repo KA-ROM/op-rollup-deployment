@@ -1,5 +1,4 @@
 # .helmignore
 node_modules
-*.tgz
 .git/
 *.swp

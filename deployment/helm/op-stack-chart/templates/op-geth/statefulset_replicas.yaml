@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: op-geth-replica
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/name: op-geth-replica
+    app.kubernetes.io/instance: op-geth-replica
+spec:
+  serviceName: op-geth-replica
+  replicas: {{ .Values.replica.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: op-geth-replica
+      app.kubernetes.io/instance: op-geth-replica
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: op-geth-replica
+        app.kubernetes.io/instance: op-geth-replica
+    spec:
+      containers:
+        - name: op-geth-replica
+          image: {{ .Values.images.op_geth.repository }}:{{ .Values.images.op_geth.tag }}
+          ports:
+            # HTTP RPC
+            - name: rpc-http-port
+              containerPort: 8545
+            # WS RPC
+            - name: rpc-ws-port
+              containerPort: 8546
+            # Metrics
+            - name: metrics-port
+              containerPort: 7300
+            # pprof
+            - name: pprof-port
+              containerPort: 6060
+          command: ["/usr/local/bin/geth"]
+          args:
+            - --datadir=/root/data
+            - --syncmode=full
+            - --gcmode=archive
+            - --http
+            - --http.addr=0.0.0.0
+            - --http.port=8545
+            - --http.api=web3,debug,eth,net
+            - --ws
+            - --ws.addr=0.0.0.0
+            - --ws.port=8546
+            - --ws.api=debug,eth,net
+            - --metrics
+            - --metrics.addr=0.0.0.0
+            - --metrics.port=7300
+            - --pprof
+            - --pprof.addr=0.0.0.0
+            - --pprof.port=6060
+          livenessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            tcpSocket:
+              port: rpc-http-port
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            tcpSocket:
+              port: rpc-http-port
+          volumeMounts:
+            - name: data
+              mountPath: /root/data
+      volumes:
+        - name: op-geth-replica-secret
+          secret:
+            secretName: op-geth-replica-secret
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.replica.storage.size }}

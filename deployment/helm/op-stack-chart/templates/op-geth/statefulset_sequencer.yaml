@@ -1,30 +1,38 @@
 ---
-# Source: op-geth/templates/statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: op-geth
+  name: op-geth-sequencer
   labels:
-    helm.sh/chart: op-geth-0.1.2
-    app.kubernetes.io/name: op-geth
-    app.kubernetes.io/instance: op-geth
-    release: op-geth
+    app.kubernetes.io/managed-by: "Helm"
+    app.kubernetes.io/name: op-geth-sequencer
+    app.kubernetes.io/instance: op-geth-sequencer
     app.kubernetes.io/version: "v1.10.26"
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: "op-stack-release"
+    meta.helm.sh/release-namespace: "op-stack"
 spec:
-  serviceName: op-geth
+  serviceName: op-geth-sequencer
   selector:
     matchLabels:
-      app.kubernetes.io/name: op-geth
-      app.kubernetes.io/instance: op-geth
-      release: op-geth
+      app.kubernetes.io/name: op-geth-sequencer
+      app.kubernetes.io/instance: op-geth-sequencer
+      release: op-geth-sequencer
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: op-geth
-        app.kubernetes.io/instance: op-geth
-        release: op-geth
+        app.kubernetes.io/name: op-geth-sequencer
+        app.kubernetes.io/instance: op-geth-sequencer
+        release: op-geth-sequencer
     spec:
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: op-geth-data-pvc
+      - name: op-geth-secret
+        secret:
+          secretName: op-geth-secret
       initContainers:
       - name: preprocess
         command: ["/bin/sh", "-c"]
@@ -38,17 +46,14 @@ spec:
         - name: data
           mountPath: /root
       - name: import-signer-key
-        image: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:v1.101411.0"
+        image: {{ .Values.images.op_geth.repository }}:{{ .Values.images.op_geth.tag }}
         imagePullPolicy: IfNotPresent
         command: ["/bin/sh", "-c"]
         args:
           - |
             geth init --state.scheme=hash --datadir=root/data genesis.json
             
-            if [ -f "/root/init.import-signer-key.done" ]; then
-            echo "already initialized"
-            ls /root/data
-            else
+
             echo "Signer key import start"
             wget https://storage.googleapis.com/op-geth-genesis-bucket/genesis.json -O genesis.json
             geth account import \
@@ -58,12 +63,13 @@ spec:
             touch /root/init.import-signer-key.done
             ls /root/data
             echo "Signer Key import finished"
-            fi
+            
         volumeMounts:
         - name: data
           mountPath: /root
         - name: op-geth-secret
           mountPath: /secrets # mounts all files in the Secrets.
+
       - name: import-genesis
         command: ["/bin/sh", "-c"]
         args:
@@ -79,14 +85,16 @@ spec:
             ls /root/data
             echo "Genesis import finished"
             fi
-        image: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:v1.101411.0"
+        image: {{ .Values.images.op_geth.repository }}:{{ .Values.images.op_geth.tag }}
         imagePullPolicy: IfNotPresent
+        
         volumeMounts:
         - name: data
           mountPath: /root
+
       containers:
         - name: op-geth
-          image: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:v1.101411.0"
+          image: {{ .Values.images.op_geth.repository }}:{{ .Values.images.op_geth.tag }}
           imagePullPolicy: IfNotPresent
           ports:
             # HTTP RPC
@@ -129,7 +137,7 @@ spec:
             - --ws.api=debug,eth,txpool,net,engine
             - --ws.origins=*
             # network settings
-            - --networkid=42069
+            - --networkid={{ .Values.l1_network_id }}
             # Auth RPC
             - --authrpc.addr=0.0.0.0
             - --authrpc.port=8551
@@ -176,12 +184,38 @@ spec:
       annotations:
         "helm.sh/resource-policy": keep
       labels:
-        app.kubernetes.io/name: op-geth
-        app.kubernetes.io/instance: op-geth
-        release: op-geth
+        app.kubernetes.io/name: op-geth-sequencer
+        app.kubernetes.io/instance: op-geth-sequencer
+        release: op-geth-sequencer
     spec:
       accessModes:
       - "ReadWriteOnce"
       resources:
         requests:
           storage: 200Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: op-geth-data-pvc
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: op-geth-data-pvc
+    app.kubernetes.io/instance: op-geth-data-pvc
+  annotations:
+    meta.helm.sh/release-name: "op-stack-release"
+    meta.helm.sh/release-namespace: "op-stack"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+
+# if [ -f "/root/init.import-signer-key.done" ]; then
+# echo "already initialized"
+# ls /root/data
+# else
+# fi
